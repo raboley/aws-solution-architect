@@ -4,6 +4,7 @@ resource "aws_instance" "private" {
   instance_type          = "t2.micro"
   security_groups = [data.terraform_remote_state.vpc.outputs.vpc_private_security_group_id]
   subnet_id = data.terraform_remote_state.vpc.outputs.vpc_private_subnet_id
+  key_name = "webDMZ"
 
   # website::tag::3:: When the instance boots, start a web server on port 8080 that responds with "Hello, World!".
   user_data = <<EOF
@@ -12,6 +13,10 @@ echo "Hello, World!" > index.html
 nohup busybox httpd -f -p 8080 &
 EOF
   tags = {
-    name = "hello-world-test-public"
+    Name = "private"
   }
+}
+
+output "private_instance_ip" {
+  value = aws_instance.private.private_ip
 }
