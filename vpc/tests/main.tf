@@ -19,7 +19,7 @@ resource "aws_instance" "public" {
   # website::tag::2:: Run an Ubuntu 18.04 AMI on the EC2 instance.
   ami                    = "ami-0ca5c3bd5a268e7db"
   instance_type          = "t2.micro"
-  vpc_security_group_ids = [aws_security_group.instance.id]
+  vpc_security_group_ids = [data.terraform_remote_state.vpc.outputs.vpc_public_security_group_id]
   subnet_id = data.terraform_remote_state.vpc.outputs.vpc_public_subnet_id
 
   # website::tag::3:: When the instance boots, start a web server on port 8080 that responds with "Hello, World!".
@@ -30,18 +30,6 @@ nohup busybox httpd -f -p 8080 &
 EOF
   tags = {
     name = "hello-world-test-public"
-  }
-}
-
-# website::tag::4:: Allow the instance to receive requests on port 8080.
-resource "aws_security_group" "instance" {
-  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
-
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 

@@ -16,7 +16,7 @@ func TestTerraformAwsHelloWorldExample(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: ".",
 	})
-	//defer terraform.Destroy(t, terraformOptions)
+	defer terraform.Destroy(t, terraformOptions)
 
 	terraform.InitAndApply(t, terraformOptions)
 	publicIp := terraform.Output(t, terraformOptions, "public_ip")
