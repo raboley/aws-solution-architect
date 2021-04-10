@@ -2,7 +2,6 @@ package test
 
 import (
 	"fmt"
-	"golang.org/x/crypto/ssh"
 	"testing"
 	"time"
 
@@ -17,7 +16,7 @@ func TestTerraformAwsHelloWorldExample(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: ".",
 	})
-	//defer terraform.Destroy(t, terraformOptions)
+	defer terraform.Destroy(t, terraformOptions)
 
 	terraform.InitAndApply(t, terraformOptions)
 	publicIp := terraform.Output(t, terraformOptions, "public_ip")
@@ -30,33 +29,7 @@ func TestTerraformAwsHelloWorldExample(t *testing.T) {
 
 	t.Run("Ping the private instance", func(t *testing.T) {
 		// SSH into public instance
-		connectToHost("ubuntu", publicIp)
 		// ping private box ip
 		// get responses
 	})
-}
-
-func connectToHost(user, host string) (*ssh.Client, *ssh.Session, error) {
-	var pass string
-	fmt.Print("Password: ")
-	fmt.Scanf("%s\n", &pass)
-
-	sshConfig := &ssh.ClientConfig{
-		User: user,
-		Auth: []ssh.AuthMethod{ssh.Password(pass)},
-	}
-	sshConfig.HostKeyCallback = ssh.InsecureIgnoreHostKey()
-
-	client, err := ssh.Dial("tcp", host, sshConfig)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	session, err := client.NewSession()
-	if err != nil {
-		client.Close()
-		return nil, nil, err
-	}
-
-	return client, session, nil
 }
