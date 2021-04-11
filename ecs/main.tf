@@ -55,7 +55,7 @@ resource "aws_ecs_task_definition" "example" {
   memory                   = 512
   requires_compatibilities = ["FARGATE"]
   execution_role_arn       = aws_iam_role.execution.arn
-  container_definitions    = <-JSON
+  container_definitions    = <<JSON
     [
       {
         "image": "terraterst-example",

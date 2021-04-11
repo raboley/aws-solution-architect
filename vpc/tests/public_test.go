@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -27,9 +28,14 @@ func TestTerraformAwsHelloWorldExample(t *testing.T) {
 		http_helper.HttpGetWithRetry(t, url, nil, 200, "I'm healthy!", 30, 5*time.Second)
 	})
 
-	t.Run("Ping the private instance", func(t *testing.T) {
-		// SSH into public instance
-		// ping private box ip
-		// get responses
+	t.Run("Test Connection to Private Instance", func(t *testing.T) {
+		privateIp := terraform.Output(t, terraformOptions, "private_instance_ip")
+		url := fmt.Sprintf("http://%s:80/greet/%s:8080/", publicIp, privateIp)
+		http_helper.HttpGetWithRetryWithCustomValidation(t, url, nil, 30, 5*time.Second, ValidateGreeting)
+
 	})
+}
+
+func ValidateGreeting(statusCode int, body string) bool {
+	return statusCode == 200 && strings.Contains(body, "says: Hello, World!")
 }
