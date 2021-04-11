@@ -22,17 +22,17 @@ func TestTerraformAwsHelloWorldExample(t *testing.T) {
 	terraform.InitAndApply(t, terraformOptions)
 	publicIp := terraform.Output(t, terraformOptions, "public_ip")
 
-	t.Run("Test Ability to hit public IP", func(t *testing.T) {
-		// website::tag::5:: Make an HTTP request to the instance and make sure we get back a 200 OK with the body "Hello, World!"
+	t.Run("We can talk to public", func(t *testing.T) {
+		t.Parallel()
 		url := fmt.Sprintf("http://%s:80", publicIp)
 		http_helper.HttpGetWithRetry(t, url, nil, 200, "I'm healthy!", 30, 5*time.Second)
 	})
 
-	t.Run("Test Connection to Private Instance", func(t *testing.T) {
+	t.Run("Public can talk to Private", func(t *testing.T) {
+		t.Parallel()
 		privateIp := terraform.Output(t, terraformOptions, "private_instance_ip")
 		url := fmt.Sprintf("http://%s:80/greet/%s:8080/", publicIp, privateIp)
 		http_helper.HttpGetWithRetryWithCustomValidation(t, url, nil, 30, 5*time.Second, ValidateGreeting)
-
 	})
 }
 
