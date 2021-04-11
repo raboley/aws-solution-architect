@@ -20,12 +20,26 @@ resource "aws_instance" "public" {
   vpc_security_group_ids = [data.terraform_remote_state.vpc.outputs.vpc_public_security_group_id]
 
   subnet_id = data.terraform_remote_state.vpc.outputs.vpc_public_subnet_id
-  key_name = "webDMZ"
+  key_name  = "webDMZ"
 
   user_data = <<EOF
 #!/bin/bash
-echo "Hello, World!" > index.html
-nohup busybox httpd -f -p 8080 &
+# Install docker
+apt-get update
+apt-get install -y cloud-utils apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+apt-get update
+apt-get install -y docker-ce
+usermod -aG docker ubuntu
+
+docker run --rm -p 80:80 raboley/go-greeter
+#################################
+#echo "Hello, World!" > index.html
+#nohup busybox httpd -f -p 8080 &
 EOF
   tags = {
     Name = "public"
