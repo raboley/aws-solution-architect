@@ -10,7 +10,7 @@ variable "vpc_cidr_block" {
 }
 
 variable "vpc_collection_name" {
-  default = "solution-architect" 
+  default = "solution-architect"
 }
 
 ############################################
@@ -19,9 +19,9 @@ variable "vpc_collection_name" {
 
 #### VPCs #####################
 resource "aws_vpc" "i" {
-  cidr_block = var.vpc_cidr_block
+  cidr_block                       = var.vpc_cidr_block
   assign_generated_ipv6_cidr_block = true
-  
+
   tags = {
     Name = var.vpc_collection_name
   }
@@ -37,10 +37,10 @@ locals {
 
 #### Subnets #####################
 resource "aws_subnet" "public" {
-  vpc_id     = aws_vpc.i.id
-  cidr_block = local.subnet_cidrs[0]
+  vpc_id            = aws_vpc.i.id
+  cidr_block        = local.subnet_cidrs[0]
   availability_zone = "${var.region}a"
-  
+
   ## Auto assign public IPs to EC2 instances on launch.
   map_public_ip_on_launch = true
 
@@ -50,8 +50,8 @@ resource "aws_subnet" "public" {
 }
 
 resource "aws_subnet" "private" {
-  vpc_id     = aws_vpc.i.id
-  cidr_block = local.subnet_cidrs[1]
+  vpc_id            = aws_vpc.i.id
+  cidr_block        = local.subnet_cidrs[1]
   availability_zone = "${var.region}a"
 
   tags = {
@@ -63,7 +63,7 @@ resource "aws_subnet" "private" {
 resource "aws_internet_gateway" "public" {
   // Only one internet Gateway Per VPC
   vpc_id = aws_vpc.i.id
-  
+
   tags = {
     Name = "my-ig"
   }
@@ -72,28 +72,28 @@ resource "aws_internet_gateway" "public" {
 #### Route Table #############
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.i.id
-  
+
   tags = {
     Name = "public-route-table"
   }
 }
 
 resource "aws_route" "public_out_ipv4" {
-  route_table_id = aws_route_table.public.id
+  route_table_id         = aws_route_table.public.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id = aws_internet_gateway.public.id
+  gateway_id             = aws_internet_gateway.public.id
 }
 
 resource "aws_route" "public_out_ipv6" {
-  route_table_id = aws_route_table.public.id
+  route_table_id              = aws_route_table.public.id
   destination_ipv6_cidr_block = "::/0"
-  gateway_id = aws_internet_gateway.public.id
+  gateway_id                  = aws_internet_gateway.public.id
 }
 
 # Only associate with our public subnet. Every subnet associated with this will become public.
 resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
-  subnet_id = aws_subnet.public.id
+  subnet_id      = aws_subnet.public.id
 }
 
 #### Security Groups ########
@@ -130,7 +130,7 @@ resource "aws_security_group" "public" {
 }
 
 resource "aws_security_group" "private" {
-  name = "private"
+  name   = "private"
   vpc_id = aws_vpc.i.id
 
   egress {
@@ -141,46 +141,63 @@ resource "aws_security_group" "private" {
   }
 
   ingress {
-    from_port = -1
-    protocol = "icmp"
-    to_port = -1
+    from_port       = -1
+    protocol        = "icmp"
+    to_port         = -1
     security_groups = [aws_security_group.public.id]
   }
 
   ingress {
-    from_port = 22
-    protocol = "tcp"
-    to_port = 22
+    from_port       = 22
+    protocol        = "tcp"
+    to_port         = 22
     security_groups = [aws_security_group.public.id]
   }
 
   ingress {
-    from_port = 80
-    protocol = "tcp"
-    to_port = 80
+    from_port       = 80
+    protocol        = "tcp"
+    to_port         = 80
     security_groups = [aws_security_group.public.id]
   }
 
   ingress {
-    from_port = 8080
-    protocol = "tcp"
-    to_port = 8080
+    from_port       = 8080
+    protocol        = "tcp"
+    to_port         = 8080
     security_groups = [aws_security_group.public.id]
   }
 
   ingress {
-    from_port = 443
-    protocol = "tcp"
-    to_port = 443
+    from_port       = 443
+    protocol        = "tcp"
+    to_port         = 443
     security_groups = [aws_security_group.public.id]
   }
 
   ingress {
-    from_port = 3306
-    protocol = "tcp"
-    to_port = 3306
+    from_port       = 3306
+    protocol        = "tcp"
+    to_port         = 3306
     security_groups = [aws_security_group.public.id]
   }
+}
+
+#### Nat Gateways ############
+# This will allow our private subnet to access the internet to download stuff.
+resource "aws_eip" "nat_gateway" {}
+
+resource "aws_nat_gateway" "i" {
+  allocation_id = aws_eip.nat_gateway.id
+  subnet_id     = aws_subnet.public.id
+}
+
+# Once nat gateway is created, need to update our main route table to add a route to the nat gateway.
+resource "aws_route" "nat_gateway" {
+  route_table_id = aws_vpc.i.main_route_table_id
+
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.i.id
 }
 
 #### ACL #####################

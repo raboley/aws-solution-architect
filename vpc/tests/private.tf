@@ -5,12 +5,15 @@ resource "aws_instance" "private" {
   subnet_id              = data.terraform_remote_state.vpc.outputs.vpc_private_subnet_id
   key_name               = "webDMZ"
 
-  # website::tag::3:: When the instance boots, start a web server on port 8080 that responds with "Hello, World!".
-  user_data = <<EOF
-#!/bin/bash
-echo "Hello, World!" > index.html
-nohup busybox httpd -f -p 8080 &
-EOF
+  # Internet Connectivity won't work to allow us to run go-greeter, so need to add a nat gateway.
+  //  user_data = <<EOF
+  //#!/bin/bash
+  //echo "Hello, World!" > index.html
+  //nohup busybox httpd -f -p 8080 &
+  //EOF
+
+  # After adding nat gateway make it work like my other service does
+  user_data = file("greeter_startup.sh")
   tags = {
     Name = "private"
   }
