@@ -234,8 +234,8 @@ resource "aws_network_acl_rule" "public_https" {
   cidr_block = "0.0.0.0/0"
 }
 
-# These ports are required to be allowed since it seems that the web server that sends traffic to the back end
-# May route web requests using these ports.
+# Ephemeral ports are used for lots of network traffic, such as downloading things, so these must be allowed both
+# inbound and outbound.
 resource "aws_network_acl_rule" "public_ephemeral" {
   network_acl_id = aws_network_acl.public.id
   protocol       = "tcp"
