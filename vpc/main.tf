@@ -201,11 +201,108 @@ resource "aws_route" "nat_gateway" {
 }
 
 #### ACL #####################
-//resource "aws_network_acl" "i" {
-//  vpc_id = aws_vpc.i.id
-//  subnet_ids = [aws_subnet.private.id]
-//
-//  tags = {
-//    Name = "private"
-//  }
-//}
+# access control list is stateless, and controls in the ingress and egress rules for a VPCs/subnets.
+resource "aws_network_acl" "public" {
+  vpc_id     = aws_vpc.i.id
+  subnet_ids = [aws_subnet.public.id]
+
+  tags = {
+    Name = "public"
+  }
+}
+
+# Adding Ingress Rules #####
+resource "aws_network_acl_rule" "public_http" {
+  network_acl_id = aws_network_acl.public.id
+  protocol       = "tcp"
+  rule_action    = "allow"
+  rule_number    = 100
+
+  from_port  = 80
+  to_port    = 80
+  cidr_block = "0.0.0.0/0"
+}
+
+resource "aws_network_acl_rule" "public_https" {
+  network_acl_id = aws_network_acl.public.id
+  protocol       = "tcp"
+  rule_action    = "allow"
+  rule_number    = 200
+
+  from_port  = 443
+  to_port    = 443
+  cidr_block = "0.0.0.0/0"
+}
+
+# These ports are required to be allowed since it seems that the web server that sends traffic to the back end
+# May route web requests using these ports.
+resource "aws_network_acl_rule" "public_ephemeral" {
+  network_acl_id = aws_network_acl.public.id
+  protocol       = "tcp"
+  rule_action    = "allow"
+  rule_number    = 300
+
+  egress     = false
+  from_port  = 1024
+  to_port    = 65535
+  cidr_block = "0.0.0.0/0"
+}
+
+# Adding Egress Rules #####
+resource "aws_network_acl_rule" "public_http_egress" {
+  network_acl_id = aws_network_acl.public.id
+  protocol       = "tcp"
+  rule_action    = "allow"
+  rule_number    = 100
+
+  egress     = true
+  from_port  = 80
+  to_port    = 80
+  cidr_block = "0.0.0.0/0"
+}
+
+resource "aws_network_acl_rule" "public_https_egress" {
+  network_acl_id = aws_network_acl.public.id
+  protocol       = "tcp"
+  rule_action    = "allow"
+  rule_number    = 200
+
+  egress     = true
+  from_port  = 443
+  to_port    = 443
+  cidr_block = "0.0.0.0/0"
+}
+
+resource "aws_network_acl_rule" "public_http_alt_egress" {
+  network_acl_id = aws_network_acl.public.id
+  protocol       = "tcp"
+  rule_action    = "allow"
+  rule_number    = 300
+
+  egress     = true
+  from_port  = 8080
+  to_port    = 8080
+  cidr_block = "0.0.0.0/0"
+}
+
+resource "aws_network_acl_rule" "public_ephemeral_egress" {
+  network_acl_id = aws_network_acl.public.id
+  protocol       = "tcp"
+  rule_action    = "allow"
+  rule_number    = 400
+
+  egress     = true
+  from_port  = 1024
+  to_port    = 65535
+  cidr_block = "0.0.0.0/0"
+}
+
+resource "aws_network_acl_rule" "public_any" {
+  network_acl_id = aws_network_acl.public.id
+  protocol       = "all"
+  rule_action    = "allow"
+  rule_number    = 500
+
+  egress     = true
+  cidr_block = "0.0.0.0/0"
+}

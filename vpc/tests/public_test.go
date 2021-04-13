@@ -17,7 +17,7 @@ func TestTerraformAwsHelloWorldExample(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: ".",
 	})
-	defer terraform.Destroy(t, terraformOptions)
+	//defer terraform.Destroy(t, terraformOptions)
 
 	terraform.InitAndApply(t, terraformOptions)
 	publicIp := terraform.Output(t, terraformOptions, "public_ip")
@@ -29,7 +29,7 @@ func TestTerraformAwsHelloWorldExample(t *testing.T) {
 
 	t.Run("Public can talk to Private", func(t *testing.T) {
 		privateIp := terraform.Output(t, terraformOptions, "private_instance_ip")
-		url := fmt.Sprintf("http://%s:80/greet/%s:80/", publicIp, privateIp)
+		url := fmt.Sprintf("http://%s:80/greet/%s/", publicIp, privateIp)
 		http_helper.HttpGetWithRetryWithCustomValidation(t, url, nil, 30, 5*time.Second, ValidateGreeting)
 	})
 }
