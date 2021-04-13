@@ -6,20 +6,17 @@ provider "aws" {
   region = "us-west-2"
 }
 
-data "terraform_remote_state" "vpc" {
-  backend = "local"
 
-  config = {
-    path = "${path.module}/../terraform.tfstate"
-  }
+module "vpc" {
+  source = "../"
 }
 
 resource "aws_instance" "public" {
   ami                    = "ami-0ca5c3bd5a268e7db"
   instance_type          = "t2.micro"
-  vpc_security_group_ids = [data.terraform_remote_state.vpc.outputs.vpc_public_security_group_id]
+  vpc_security_group_ids = [module.vpc.vpc_public_security_group_id]
 
-  subnet_id = data.terraform_remote_state.vpc.outputs.vpc_public_subnet_id
+  subnet_id = module.vpc.vpc_public_subnet_id
   key_name  = "webDMZ"
 
   user_data = file("greeter_startup.sh")

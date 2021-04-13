@@ -1,19 +1,4 @@
 ############################################
-# Variables
-############################################
-variable "region" {
-  default = "us-west-2"
-}
-
-variable "vpc_cidr_block" {
-  default = "10.0.0.0/16"
-}
-
-variable "vpc_collection_name" {
-  default = "solution-architect"
-}
-
-############################################
 # Resources
 ############################################
 
@@ -23,15 +8,17 @@ resource "aws_vpc" "i" {
   assign_generated_ipv6_cidr_block = true
 
   tags = {
-    Name = var.vpc_collection_name
+    Name = var.vpc_name
   }
 }
-# Creates a default:
+# Creates by default:
 # * Routing table
 # * Access Control List
 # * Security Group
 
 locals {
+  # TODO have this split by number of AZs.
+  # Ex. 2 subnets per Availability Zone.
   subnet_cidrs = cidrsubnets(var.vpc_cidr_block, 3, 3, 3, 3, 3, 3)
 }
 
@@ -41,7 +28,7 @@ resource "aws_subnet" "public" {
   cidr_block        = local.subnet_cidrs[0]
   availability_zone = "${var.region}a"
 
-  ## Auto assign public IPs to EC2 instances on launch.
+  # Auto assign public IPs to EC2 instances on launch in the public subnet
   map_public_ip_on_launch = true
 
   tags = {
@@ -62,6 +49,7 @@ resource "aws_subnet" "private" {
 #### Internet Gateway ########
 resource "aws_internet_gateway" "public" {
   // Only one internet Gateway Per VPC
+  # TODO: Check if it is per vpc per az.
   vpc_id = aws_vpc.i.id
 
   tags = {
@@ -90,7 +78,7 @@ resource "aws_route" "public_out_ipv6" {
   gateway_id                  = aws_internet_gateway.public.id
 }
 
-# Only associate with our public subnet. Every subnet associated with this will become public.
+# Only associate with our public subnet. Every subnet associated with oure public route table, will become public.
 resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
   subnet_id      = aws_subnet.public.id
