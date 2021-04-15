@@ -39,7 +39,6 @@ resource "aws_iam_role_policy" "i" {
   "Statement": [
     {
       "Action": [
-        "logs:CreateLogGroup",
         "logs:CreateLogStream",
         "logs:PutLogEvents",
         "logs:DescribeLogGroups",

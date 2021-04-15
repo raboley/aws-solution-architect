@@ -2,8 +2,12 @@
 terraform {
 }
 
+variable "region" {
+  default = "us-west-2"
+}
+
 provider "aws" {
-  region = "us-west-2"
+  region = var.region
 }
 
 
@@ -12,12 +16,27 @@ module "vpc" {
 
 }
 
+locals {
+  # TODO have this split by number of AZs.
+  # Ex. 2 subnets per Availability Zone.
+  subnet_cidrs = cidrsubnets(module.vpc.vpc_cidr, 3, 3, 3, 3, 3, 3)
+}
+
+module "subnets_a" {
+  source = "../modules/public_private_subnets/"
+
+  vpc_id              = module.vpc.vpc_id
+  availability_zone   = "${var.region}a"
+  private_subnet_cidr = local.subnet_cidrs[0]
+  public_subnet_cidr  = local.subnet_cidrs[1]
+}
+
 resource "aws_instance" "public" {
   ami                    = "ami-0ca5c3bd5a268e7db"
   instance_type          = "t2.micro"
-  vpc_security_group_ids = [module.vpc.vpc_public_security_group_id]
+  vpc_security_group_ids = [module.subnets_a.vpc_public_security_group_id]
 
-  subnet_id = module.vpc.vpc_public_subnet_id
+  subnet_id = module.subnets_a.vpc_public_subnet_id
   key_name  = "webDMZ"
 
   user_data = file("greeter_startup.sh")

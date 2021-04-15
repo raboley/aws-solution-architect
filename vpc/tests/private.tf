@@ -1,8 +1,8 @@
 resource "aws_instance" "private" {
   ami                    = "ami-0ca5c3bd5a268e7db"
   instance_type          = "t2.micro"
-  vpc_security_group_ids = [module.vpc.vpc_private_security_group_id]
-  subnet_id              = module.vpc.vpc_private_subnet_id
+  vpc_security_group_ids = [module.subnets_a.vpc_private_security_group_id]
+  subnet_id              = module.subnets_a.vpc_private_subnet_id
   key_name               = "webDMZ"
 
   # After adding a nat gateway, this private instance will be able to download files from the internet
