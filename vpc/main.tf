@@ -26,7 +26,7 @@ locals {
 resource "aws_subnet" "public" {
   vpc_id            = aws_vpc.i.id
   cidr_block        = local.subnet_cidrs[0]
-  availability_zone = "${var.region}a"
+  availability_zone = var.availability_zone
 
   # Auto assign public IPs to EC2 instances on launch in the public subnet
   map_public_ip_on_launch = true
@@ -39,7 +39,7 @@ resource "aws_subnet" "public" {
 resource "aws_subnet" "private" {
   vpc_id            = aws_vpc.i.id
   cidr_block        = local.subnet_cidrs[1]
-  availability_zone = "${var.region}a"
+  availability_zone = var.availability_zone
 
   tags = {
     Name = "private"

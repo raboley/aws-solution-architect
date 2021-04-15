@@ -1,6 +1,6 @@
-variable "region" {
-  description = "The AWS Region to deploy your VPC into."
-  default     = "us-west-2"
+variable "availability_zone" {
+  description = "The AWS availability zone to deploy your subnets into."
+  default     = "us-west-2a"
 }
 
 variable "vpc_cidr_block" {

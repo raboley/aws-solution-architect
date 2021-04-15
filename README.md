@@ -7,3 +7,6 @@ Each directory contains examples of terraform configurations that are outlined i
 be used as terraform modules. The usage pattern for the modules will be shown
 in the Terratest examples in the test directory inside each topic directory.
 
+## Table of Contents
+
+* [vpc](vpc/README.md) - Public and Private Subnet with Flow Logs

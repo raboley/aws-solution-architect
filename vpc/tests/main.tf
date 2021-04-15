@@ -9,6 +9,7 @@ provider "aws" {
 
 module "vpc" {
   source = "../"
+
 }
 
 resource "aws_instance" "public" {
