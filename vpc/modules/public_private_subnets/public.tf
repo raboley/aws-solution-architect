@@ -7,7 +7,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "public"
+    Name = "${var.availability_zone}-public"
   }
 }
 
@@ -16,8 +16,14 @@ resource "aws_route_table" "public" {
   vpc_id = var.vpc_id
 
   tags = {
-    Name = "public-route-table"
+    Name = "${var.availability_zone}-public"
   }
+}
+
+# Only associate with our public subnet. Every subnet associated with oure public route table, will become public.
+resource "aws_route_table_association" "public" {
+  route_table_id = aws_route_table.public.id
+  subnet_id      = aws_subnet.public.id
 }
 
 resource "aws_route" "public_out_ipv4" {
@@ -30,12 +36,6 @@ resource "aws_route" "public_out_ipv6" {
   route_table_id              = aws_route_table.public.id
   destination_ipv6_cidr_block = "::/0"
   gateway_id                  = aws_internet_gateway.public.id
-}
-
-# Only associate with our public subnet. Every subnet associated with oure public route table, will become public.
-resource "aws_route_table_association" "public" {
-  route_table_id = aws_route_table.public.id
-  subnet_id      = aws_subnet.public.id
 }
 
 #### Security Groups ########
@@ -82,14 +82,6 @@ resource "aws_nat_gateway" "i" {
 
 data "aws_vpc" "i" {
   id = var.vpc_id
-}
-
-# Once nat gateway is created, need to update our main route table to add a route to the nat gateway.
-resource "aws_route" "nat_gateway" {
-  route_table_id = data.aws_vpc.i.main_route_table_id
-
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.i.id
 }
 
 #### ACL #####################
