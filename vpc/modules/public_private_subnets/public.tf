@@ -29,13 +29,13 @@ resource "aws_route_table_association" "public" {
 resource "aws_route" "public_out_ipv4" {
   route_table_id         = aws_route_table.public.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.public.id
+  gateway_id             = var.vpc_internet_gateway_id
 }
 
 resource "aws_route" "public_out_ipv6" {
   route_table_id              = aws_route_table.public.id
   destination_ipv6_cidr_block = "::/0"
-  gateway_id                  = aws_internet_gateway.public.id
+  gateway_id                  = var.vpc_internet_gateway_id
 }
 
 #### Security Groups ########
@@ -189,15 +189,4 @@ resource "aws_network_acl_rule" "public_any" {
 
   egress     = true
   cidr_block = "0.0.0.0/0"
-}
-
-#### Internet Gateway ########
-resource "aws_internet_gateway" "public" {
-  // Only one internet Gateway Per VPC
-  # TODO: Check if it is per vpc per az.
-  vpc_id = var.vpc_id
-
-  tags = {
-    Name = "my-ig"
-  }
 }

@@ -25,20 +25,22 @@ locals {
 module "subnets_a" {
   source = "../modules/public_private_subnets/"
 
-  vpc_id              = module.vpc.vpc_id
-  availability_zone   = "${var.region}a"
-  private_subnet_cidr = local.subnet_cidrs[0]
-  public_subnet_cidr  = local.subnet_cidrs[1]
+  vpc_id                  = module.vpc.vpc_id
+  vpc_internet_gateway_id = module.vpc.vpc_internet_gateway_id
+  availability_zone       = "${var.region}a"
+  private_subnet_cidr     = local.subnet_cidrs[0]
+  public_subnet_cidr      = local.subnet_cidrs[1]
 }
 
-//module "subnets_b" {
-//  source = "../modules/public_private_subnets/"
-//
-//  vpc_id              = module.vpc.vpc_id
-//  availability_zone   = "${var.region}b"
-//  private_subnet_cidr = local.subnet_cidrs[2]
-//  public_subnet_cidr  = local.subnet_cidrs[3]
-//}
+module "subnets_b" {
+  source = "../modules/public_private_subnets/"
+
+  vpc_id                  = module.vpc.vpc_id
+  vpc_internet_gateway_id = module.vpc.vpc_internet_gateway_id
+  availability_zone       = "${var.region}b"
+  private_subnet_cidr     = local.subnet_cidrs[2]
+  public_subnet_cidr      = local.subnet_cidrs[3]
+}
 
 resource "aws_instance" "public" {
   ami                    = "ami-0ca5c3bd5a268e7db"

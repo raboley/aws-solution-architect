@@ -16,4 +16,13 @@ resource "aws_vpc" "i" {
 # * Access Control List
 # * Security Group
 
+#### Internet Gateway ########
+# Only one internet Gateway Per VPC
+resource "aws_internet_gateway" "i" {
+  vpc_id = aws_vpc.i.id
+
+  tags = {
+    Name = "my-ig"
+  }
+}
 
