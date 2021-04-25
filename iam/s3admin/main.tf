@@ -20,3 +20,7 @@ resource "aws_iam_role_policy_attachment" "i" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
   role       = aws_iam_role.i.name
 }
+
+output "iam_role_name" {
+  value = aws_iam_role.i.name
+}

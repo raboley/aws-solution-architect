@@ -38,38 +38,6 @@ resource "aws_route" "public_out_ipv6" {
   gateway_id                  = var.vpc_internet_gateway_id
 }
 
-#### Security Groups ########
-resource "aws_security_group" "public" {
-  vpc_id = var.vpc_id
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
 
 #### Nat Gateways ############
 # This will allow our private subnet to access the internet to download stuff.
@@ -118,17 +86,38 @@ resource "aws_network_acl_rule" "public_https" {
   cidr_block = "0.0.0.0/0"
 }
 
+resource "aws_network_acl_rule" "public_ssh" {
+  network_acl_id = aws_network_acl.public.id
+  protocol       = "tcp"
+  rule_action    = "allow"
+  rule_number    = 300
+
+  from_port  = 22
+  to_port    = 22
+  cidr_block = "0.0.0.0/0"
+}
+
 # Ephemeral ports are used for lots of network traffic, such as downloading things, so these must be allowed both
 # inbound and outbound.
 resource "aws_network_acl_rule" "public_ephemeral" {
   network_acl_id = aws_network_acl.public.id
   protocol       = "tcp"
   rule_action    = "allow"
-  rule_number    = 300
+  rule_number    = 400
 
   egress     = false
   from_port  = 1024
   to_port    = 65535
+  cidr_block = "0.0.0.0/0"
+}
+
+resource "aws_network_acl_rule" "public_any" {
+  network_acl_id = aws_network_acl.public.id
+  protocol       = "all"
+  rule_action    = "allow"
+  rule_number    = 500
+
+  egress     = false
   cidr_block = "0.0.0.0/0"
 }
 
@@ -181,7 +170,7 @@ resource "aws_network_acl_rule" "public_ephemeral_egress" {
   cidr_block = "0.0.0.0/0"
 }
 
-resource "aws_network_acl_rule" "public_any" {
+resource "aws_network_acl_rule" "public_any_egress" {
   network_acl_id = aws_network_acl.public.id
   protocol       = "all"
   rule_action    = "allow"
