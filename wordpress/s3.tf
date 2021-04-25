@@ -9,9 +9,30 @@ resource "aws_s3_bucket" "code" {
 
 resource "aws_s3_bucket" "media" {
   bucket = "solution-architect-media-${random_string.i.result}"
-  acl    = "public-read"
 
   tags = {
     Name = "media"
   }
+}
+
+resource "aws_s3_bucket_policy" "i" {
+  bucket = aws_s3_bucket.media.id
+  policy = <<-EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": [
+        "s3:GetObject"
+        ],
+      "Resource": [
+        "arn:aws:s3:::${aws_s3_bucket.media.id}/*"
+        ]
+    }
+  ]
+}
+EOF
 }
